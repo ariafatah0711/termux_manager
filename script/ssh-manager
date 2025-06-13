@@ -1,0 +1,133 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+# Warna
+CYAN='\033[1;36m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+RED='\033[1;31m'
+RESET='\033[0m'
+
+banner() {
+    clear
+    echo -e "${CYAN}"
+    echo -e "┌──────────────────────────────────────────────┐"
+    echo -e "│        🔐 TERMUX SSH MANAGER TOOL v2         │"
+    echo -e "└──────────────────────────────────────────────┘${RESET}"
+}
+
+divider() {
+    echo -e "${CYAN}──────────────────────────────────────────────${RESET}"
+}
+
+get_ip() {
+    ifconfig 2>/dev/null | awk '
+        BEGIN { in_wlan=0 }
+        /^wlan0/ { in_wlan=1; next }
+        in_wlan && /inet / { print $2; exit }'
+}
+
+get_port() {
+    local config="/data/data/com.termux/files/usr/etc/ssh/sshd_config"
+    if [[ -f $config ]]; then
+        port=$(grep ^Port "$config" | awk '{print $2}')
+        [[ -n "$port" ]] && echo "$port" || echo "8022"
+    else
+        echo "8022"
+    fi
+}
+
+start_sshd() {
+    command -v sshd >/dev/null || {
+        echo -e "${YELLOW}[!] openssh belum terinstal. Menginstal...${RESET}"
+        pkg update -y >/dev/null && pkg install openssh -y >/dev/null
+    }
+
+    [[ ! -d $HOME/.ssh ]] && mkdir -p $HOME/.ssh
+
+    [[ ! -f $HOME/.ssh/id_rsa ]] && {
+        echo -e "${YELLOW}[!] SSH key belum ada. Membuat...${RESET}"
+        ssh-keygen -t rsa -f $HOME/.ssh/id_rsa -N "" >/dev/null
+    }
+
+    config="/data/data/com.termux/files/usr/etc/ssh/sshd_config"
+    [[ ! -f $config ]] && {
+        echo -e "${YELLOW}[!] Menyalin default config...${RESET}"
+        cp "${config}.example" "$config"
+    }
+
+    termux-wake-lock
+    sshd >/dev/null 2>&1
+}
+
+stop_sshd() {
+    pkill -f sshd >/dev/null 2>&1
+    termux-wake-unlock
+}
+
+status_info() {
+    local status ip port
+    ip=$(get_ip)
+    port=$(get_port)
+
+    if pgrep -f sshd >/dev/null; then
+        status="${GREEN}[✔] sshd aktif${RESET}"
+    else
+        status="${RED}[✘] sshd tidak aktif${RESET}"
+    fi
+
+    echo -e "${status}  ${CYAN}IP:${RESET} ${ip:-N/A}  ${CYAN}Port:${RESET} ${port}"
+    echo -e "${CYAN}Login:${RESET} ssh $(whoami)@${ip:-N/A} -p ${port}"
+}
+
+change_port() {
+    local config="/data/data/com.termux/files/usr/etc/ssh/sshd_config"
+    read -p "$(echo -e "${YELLOW}[?] Masukkan port baru (default 8022): ${RESET}")" new_port
+
+    if [[ $new_port =~ ^[0-9]+$ ]]; then
+        if grep -qE '^[#]*\s*Port\s+' "$config"; then
+            # Ubah baris Port yang ada, meski dikomentari
+            sed -i -E "s|^[#]*\s*Port\s+.*|Port $new_port|" "$config"
+        else
+            echo -e "\nPort $new_port" >> "$config"
+        fi
+        echo -e "${GREEN}[✔] Port SSH diubah ke $new_port${RESET}"
+        echo -e "${YELLOW}[ℹ] SSH akan di-restart untuk menerapkan perubahan...${RESET}"
+        stop_sshd && sleep 1 && start_sshd
+    else
+        echo -e "${RED}[!] Port tidak valid${RESET}"
+    fi
+}
+
+set_password() {
+    echo -e "${CYAN}Set password untuk user $(whoami)...${RESET}"
+    passwd
+}
+
+menu() {
+    while true; do
+        banner
+        divider
+        status_info
+        divider
+        echo -e "${CYAN}1.${RESET} Start SSH"
+        echo -e "${CYAN}2.${RESET} Stop SSH"
+        echo -e "${CYAN}3.${RESET} Restart SSH"
+        echo -e "${CYAN}4.${RESET} Ubah Port SSH"
+        echo -e "${CYAN}5.${RESET} Ubah Password Login"
+        echo -e "${CYAN}q.${RESET} Keluar"
+        divider
+        read -p "$(echo -e "${YELLOW}[?] Pilih opsi: ${RESET}")" opsi
+
+        case "$opsi" in
+            1) start_sshd ;;
+            2) stop_sshd ;;
+            3) stop_sshd && sleep 1 && start_sshd ;;
+            4) change_port && sleep 1 ;;
+            5) set_password ;;
+            q|x) echo -e "${RED}Keluar...${RESET}"; exit ;;
+            *) echo -e "${RED}[!] Opsi tidak valid${RESET}"; sleep 1 ;;
+        esac
+    done
+}
+
+menu

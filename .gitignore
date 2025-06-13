@@ -1,0 +1,13 @@
+# Sembunyikan semua file dan folder
+# *
+
+# Tapi tetap lacak file .gitignore ini sendiri
+#!.gitignore
+# !.shortcuts/
+# !.shortcuts/**
+# !.script/
+# !.script/**
+
+#################################################
+script_dev
+utils
