@@ -1,20 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-CYAN='\033[1;36m'
-GREEN='\033[1;32m'
-RED='\033[1;31m'
-YELLOW='\033[1;33m'
-RESET='\033[0m'
-
-divider() {
-    echo -e "${CYAN}────────────────────────────────────────────${RESET}"
-}
-
-banner() {
-    echo -e "${CYAN}┌────────────────────────────────────────┐"
-    echo -e "${CYAN}│       🌐 PING NETWORK TEST TOOL        │"
-    echo -e "${CYAN}└────────────────────────────────────────┘${RESET}"
-}
+# Source utils
+source "$(dirname "$0")/../utils"
 
 ping_host() {
     local host=$1
@@ -23,35 +10,37 @@ ping_host() {
         ping -c 2 -W 2 "$host" | grep -E "bytes from|packet loss|rtt"
         return 0
     else
-        echo -e "${RED}[-] Gagal ping ke ${host}${RESET}"
+        error "Gagal ping ke ${host}"
         return 1
     fi
 }
 
 clear
-banner
+banner "🌐 PING NETWORK TEST TOOL"
 divider
 
-# Ping 8.8.8.8 dan google.com
+# Ping 8.8.8.8
 ping_host "8.8.8.8"
 hasil_ping_ip=$?
 divider
+
+# Ping google.com
 ping_host "google.com"
 hasil_ping_domain=$?
 divider
 
-# Evaluasi koneksi
-echo -e "\n${CYAN}[=] Status Koneksi:${RESET}"
+# Result
+info "Status Koneksi:"
 if [[ $hasil_ping_ip -eq 0 && $hasil_ping_domain -eq 0 ]]; then
-    echo -e "${GREEN}[O] Internet Aktif${RESET}"
+    success "Internet Aktif"
 elif [[ $hasil_ping_ip -eq 0 && $hasil_ping_domain -ne 0 ]]; then
-    echo -e "${YELLOW}[!] DNS Error — IP bisa diakses tapi domain gagal resolve${RESET}"
+    warning "DNS Error — IP bisa diakses tapi domain gagal resolve"
 elif [[ $hasil_ping_ip -ne 0 && $hasil_ping_domain -eq 0 ]]; then
-    echo -e "${YELLOW}[!] Koneksi terbatas — DNS bisa resolve tapi gateway/IP gagal${RESET}"
+    warning "Koneksi terbatas — DNS bisa resolve tapi gateway/IP gagal"
 else
-    echo -e "${RED}[✘] Tidak Ada Koneksi Internet${RESET}"
+    error "Tidak Ada Koneksi Internet"
 fi
 
 # Tunggu user tekan Enter
-echo -e "\n${CYAN}[↩] Tekan Enter untuk keluar...${RESET}"
+info "Tekan Enter untuk keluar..."
 read

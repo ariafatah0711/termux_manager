@@ -1,43 +1,26 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# Warna
-CYAN='\033[1;36m'
-GREEN='\033[1;32m'
-YELLOW='\033[1;33m'
-RED='\033[1;31m'
-RESET='\033[0m'
+# Source utils
+source "$(dirname "$0")/../utils"
 
-# File konfigurasi internal
-PORT_FILE="$HOME/.code_server_port"
-PASSWORD_FILE="$HOME/.code_server_password"
+# File konfigurasi
 CONFIG_FILE="$HOME/.config/code-server/config.yaml"
 PORT_DEFAULT="8080"
 
-banner() {
-    clear
-    echo -e "${CYAN}"
-    echo -e "┌──────────────────────────────────────────────┐"
-    echo -e "│         💻 CODE SERVER MANAGER v1.0          │"
-    echo -e "└──────────────────────────────────────────────┘${RESET}"
-}
-
-divider() {
-    echo -e "${CYAN}──────────────────────────────────────────────${RESET}"
-}
-
 get_port() {
-    [[ -f "$PORT_FILE" ]] && cat "$PORT_FILE" || echo "$PORT_DEFAULT"
+    if [[ -f "$CONFIG_FILE" ]]; then
+        grep "^bind-addr:" "$CONFIG_FILE" | awk -F':' '{print $NF}'
+    else
+        echo "$PORT_DEFAULT"
+    fi
 }
 
 get_password() {
-    [[ -f "$PASSWORD_FILE" ]] && cat "$PASSWORD_FILE" || echo "123"
-}
-
-get_ip() {
-    ifconfig 2>/dev/null | awk '
-        BEGIN { in_wlan=0 }
-        /^wlan0/ { in_wlan=1; next }
-        in_wlan && /inet / { print $2; exit }'
+    if [[ -f "$CONFIG_FILE" ]]; then
+        grep "^password:" "$CONFIG_FILE" | cut -d' ' -f2
+    else
+        echo "123"
+    fi
 }
 
 update_config_yaml() {
@@ -55,18 +38,18 @@ EOF
 
 start_code_server() {
     command -v code-server >/dev/null || {
-        echo -e "${YELLOW}[!] code-server belum terinstal. Menginstal...${RESET}"
+        warning "code-server belum terinstal. Menginstal..."
         pkg update -y >/dev/null && pkg install tur-repo -y >/dev/null && pkg install code-server -y >/dev/null
     }
 
     update_config_yaml
-    echo -e "${GREEN}[✔] Menjalankan code-server...${RESET}"
+    success "Menjalankan code-server..."
     nohup code-server >/dev/null 2>&1 &
     sleep 1
 }
 
 stop_code_server() {
-    pkill -f code-server >/dev/null 2>&1 && echo -e "${GREEN}[✔] code-server dihentikan.${RESET}" || echo -e "${RED}[!] code-server tidak aktif.${RESET}"
+    pkill -f code-server >/dev/null 2>&1 && success "code-server dihentikan." || error "code-server tidak aktif."
 }
 
 status_info() {
@@ -87,11 +70,18 @@ status_info() {
 set_port() {
     read -p "$(echo -e "${YELLOW}[?] Masukkan port baru (default $PORT_DEFAULT): ${RESET}")" new_port
     if [[ "$new_port" =~ ^[0-9]+$ ]]; then
-        echo "$new_port" > "$PORT_FILE"
-        echo -e "${GREEN}[✔] Port berhasil disimpan.${RESET}"
-        update_config_yaml
+        local pass=$(get_password)
+        local bind=$(get_ip)
+        mkdir -p "$(dirname "$CONFIG_FILE")"
+        cat > "$CONFIG_FILE" <<EOF
+bind-addr: $bind:$new_port
+auth: password
+password: $pass
+cert: false
+EOF
+        success "Port berhasil disimpan."
     else
-        echo -e "${RED}[!] Port tidak valid.${RESET}"
+        error "Port tidak valid."
     fi
     sleep 1
 }
@@ -100,18 +90,26 @@ set_password() {
     read -sp "$(echo -e "${YELLOW}[?] Masukkan password baru untuk code-server: ${RESET}")" pass
     echo
     if [[ -n "$pass" ]]; then
-        echo "$pass" > "$PASSWORD_FILE"
-        echo -e "${GREEN}[✔] Password berhasil disimpan.${RESET}"
-        update_config_yaml
+        local port=$(get_port)
+        local bind=$(get_ip)
+        mkdir -p "$(dirname "$CONFIG_FILE")"
+        cat > "$CONFIG_FILE" <<EOF
+bind-addr: $bind:$port
+auth: password
+password: $pass
+cert: false
+EOF
+        success "Password berhasil disimpan."
     else
-        echo -e "${RED}[!] Password tidak boleh kosong.${RESET}"
+        error "Password tidak boleh kosong."
     fi
     sleep 1
 }
 
 menu() {
     while true; do
-        banner
+        clear
+        banner "💻 CODE SERVER MANAGER v1.0"
         divider
         status_info
         divider
@@ -120,7 +118,7 @@ menu() {
         echo -e "${CYAN}3.${RESET} Restart code-server"
         echo -e "${CYAN}4.${RESET} Ubah Port"
         echo -e "${CYAN}5.${RESET} Ubah Password"
-	echo -e "${CYAN}q.${RESET} Keluar"
+        echo -e "${CYAN}q.${RESET} Keluar"
         divider
         read -p "$(echo -e "${YELLOW}[?] Pilih opsi: ${RESET}")" opsi
 
@@ -130,8 +128,8 @@ menu() {
             3) stop_code_server && sleep 1 && start_code_server ;;
             4) set_port ;;
             5) set_password ;;
-            q|x) echo -e "${RED}Keluar...${RESET}"; exit ;;
-            *) echo -e "${RED}[!] Opsi tidak valid${RESET}"; sleep 1 ;;
+            q|x) error "Keluar..."; exit ;;
+            *) error "Opsi tidak valid"; sleep 1 ;;
         esac
     done
 }
