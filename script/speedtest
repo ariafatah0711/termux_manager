@@ -1,7 +1,11 @@
-#!/data/data/com.termux/files/usr/bin/bash
-
 # Source utils
 source "$(dirname "$0")/../utils"
+
+# Trap untuk Ctrl+C
+cleanup() {
+    exit 1
+}
+trap cleanup INT
 
 # Cek & install speedtest-cli jika belum ada
 if ! command -v speedtest >/dev/null 2>&1; then

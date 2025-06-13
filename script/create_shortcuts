@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Source utils
+source "$(dirname "$0")/../utils"
+
+# Trap untuk Ctrl+C
+cleanup() {
+    exit 1
+}
+trap cleanup INT
+
+# Function to get utils content
+get_utils_content() {
+    cat "$(dirname "$0")/../utils"
+}
+
+# Function to process script content
+process_script() {
+    local input_file="$1"
+    local output_file="$2"
+    
+    # Get script content
+    local content=$(cat "$input_file")
+    
+    # Remove source utils line
+    content=$(echo "$content" | sed '/source.*utils/d')
+    
+    # Add utils content at the beginning
+    echo "#!/bin/bash" > "$output_file"
+    echo "" >> "$output_file"
+    get_utils_content >> "$output_file"
+    echo "" >> "$output_file"
+    echo "$content" >> "$output_file"
+    
+    # Make executable
+    chmod +x "$output_file"
+}
+
+create_shortcuts() {
+    local shortcuts_dir="$HOME/.shortcuts"
+    local scripts_dir="$shortcuts_dir/termux_manager"
+    local current_dir="$(pwd)"
+    
+    # Delete everything in .shortcuts
+    info "Menghapus semua file di .shortcuts..."
+    rm -rf "$shortcuts_dir"/*
+    
+    # Buat direktori untuk scripts
+    [[ ! -d "$scripts_dir" ]] && mkdir -p "$scripts_dir"
+    
+#     # Create main.sh that runs the current main.sh
+#     info "Membuat main.sh..."
+#     cat > "$shortcuts_dir/main.sh" << EOF
+# #!/bin/bash
+# "$current_dir/main.sh"
+# EOF
+#     chmod +x "$shortcuts_dir/main.sh"
+    
+    # Copy all script files except utils and create_shortcuts
+    info "Menyalin file script..."
+    for script in "$current_dir/script"/*; do
+        local script_name=$(basename "$script")
+        # Skip utils and create_shortcuts
+        if [[ "$script_name" != "utils" && "$script_name" != "create_shortcuts" ]]; then
+            info "Memproses $script_name..."
+            process_script "$script" "$scripts_dir/$script_name"
+        fi
+    done
+    
+    success "Semua file berhasil disalin"
+    info "Silakan refresh widget Termux untuk melihat shortcut baru"
+}
+
+clear
+banner "📱 TERMUX WIDGET SHORTCUT CREATOR"
+divider
+
+# Cek apakah config.json ada
+if [[ ! -f "config.json" ]]; then
+    error "File config.json tidak ditemukan"
+    exit 1
+fi
+
+# Buat shortcuts
+create_shortcuts
+
+# Tunggu user tekan Enter
+info "Tekan Enter untuk keluar..."
+read 

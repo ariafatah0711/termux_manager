@@ -1,0 +1,35 @@
+{
+    "menu_title": "TERMUX MANAGER MENU ",
+    "scripts": [
+        {
+            "name": "ping",
+            "path": "script/ping"
+        },
+        {
+            "name": "speedtest",
+            "path": "script/speedtest"
+        },
+        {
+            "name": "ssh_manager",
+            "path": "script/ssh-manager"
+        },
+        {
+            "name": "code_server_manager",
+            "path": "script/code_server-manager"
+        },
+        {
+            "name": "create_shortcuts",
+            "path": "script/create_shortcuts"
+        }
+    ],
+    "services": [
+        {
+            "name": "SSH Server",
+            "process": "sshd"
+        },
+        {
+            "name": "Code Server",
+            "process": "code-server"
+        }
+    ]
+}

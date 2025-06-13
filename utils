@@ -6,6 +6,8 @@ GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
 RED='\033[1;31m'
 RESET='\033[0m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
 # Fungsi untuk menampilkan banner
 banner() {
@@ -46,4 +48,4 @@ warning() {
 # Fungsi untuk menampilkan pesan info
 info() {
     echo -e "${CYAN}[ℹ] $1${RESET}"
-} 
+}

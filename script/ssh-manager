@@ -1,7 +1,11 @@
-#!/data/data/com.termux/files/usr/bin/bash
-
 # Source utils
 source "$(dirname "$0")/../utils"
+
+# Trap untuk Ctrl+C
+cleanup() {
+    exit 1
+}
+trap cleanup INT
 
 get_port() {
     local config="/data/data/com.termux/files/usr/etc/ssh/sshd_config"
@@ -58,7 +62,7 @@ status_info() {
 
 change_port() {
     local config="/data/data/com.termux/files/usr/etc/ssh/sshd_config"
-    read -p "$(echo -e "${YELLOW}[?] Masukkan port baru (default 8022): ${RESET}")" new_port
+    read -e -p "$(echo -e "${YELLOW}[?] Masukkan port baru (default 8022): ${RESET}")" new_port
 
     if [[ $new_port =~ ^[0-9]+$ ]]; then
         if grep -qE '^[#]*\s*Port\s+' "$config"; then
@@ -93,7 +97,7 @@ menu() {
         echo -e "${CYAN}5.${RESET} Ubah Password Login"
         echo -e "${CYAN}q.${RESET} Keluar"
         divider
-        read -p "$(echo -e "${YELLOW}[?] Pilih opsi: ${RESET}")" opsi
+        read -e -p "$(echo -e "${YELLOW}[?] Pilih opsi: ${RESET}")" opsi
 
         case "$opsi" in
             1) start_sshd ;;

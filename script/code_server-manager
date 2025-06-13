@@ -1,11 +1,15 @@
-#!/data/data/com.termux/files/usr/bin/bash
-
 # Source utils
 source "$(dirname "$0")/../utils"
 
 # File konfigurasi
 CONFIG_FILE="$HOME/.config/code-server/config.yaml"
 PORT_DEFAULT="8080"
+
+# Trap untuk Ctrl+C
+cleanup() {
+    exit 1
+}
+trap cleanup INT
 
 get_port() {
     if [[ -f "$CONFIG_FILE" ]]; then
@@ -68,7 +72,7 @@ status_info() {
 }
 
 set_port() {
-    read -p "$(echo -e "${YELLOW}[?] Masukkan port baru (default $PORT_DEFAULT): ${RESET}")" new_port
+    read -e -p "$(echo -e "${YELLOW}[?] Masukkan port baru (default $PORT_DEFAULT): ${RESET}")" new_port
     if [[ "$new_port" =~ ^[0-9]+$ ]]; then
         local pass=$(get_password)
         local bind=$(get_ip)
@@ -87,7 +91,7 @@ EOF
 }
 
 set_password() {
-    read -sp "$(echo -e "${YELLOW}[?] Masukkan password baru untuk code-server: ${RESET}")" pass
+    read -e -sp "$(echo -e "${YELLOW}[?] Masukkan password baru untuk code-server: ${RESET}")" pass
     echo
     if [[ -n "$pass" ]]; then
         local port=$(get_port)
@@ -120,7 +124,7 @@ menu() {
         echo -e "${CYAN}5.${RESET} Ubah Password"
         echo -e "${CYAN}q.${RESET} Keluar"
         divider
-        read -p "$(echo -e "${YELLOW}[?] Pilih opsi: ${RESET}")" opsi
+        read -e -p "$(echo -e "${YELLOW}[?] Pilih opsi: ${RESET}")" opsi
 
         case "$opsi" in
             1) start_code_server ;;
