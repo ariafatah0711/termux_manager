@@ -2,7 +2,9 @@
 
 ## use
 ```bash
-git clone
+git clone https://github.com/ariafatah0711/termux_manager
+chmod +x setup.sh
+./setup.sh
 ```
 
 ## information

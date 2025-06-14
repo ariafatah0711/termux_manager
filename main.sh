@@ -1,5 +1,7 @@
 #!/bin/bash
-source "$(dirname "$0")/utils"
+# cd "$(dirname "$0")" || exit 1
+cd "$(dirname "$(readlink -f "$0")")" || exit 1
+source "utils"
 
 # Function to check and install required packages
 check_requirements() {
