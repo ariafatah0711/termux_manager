@@ -1,0 +1,4 @@
+*.sh text eol=lf
+script/** text eol=lf
+setup.sh eol=lf
+utils eol=lf
