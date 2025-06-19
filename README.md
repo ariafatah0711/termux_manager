@@ -20,13 +20,13 @@ termux-manager
   ![alt text](img/__2__.jpg)
 
 - ```script/speedtest``` \
-  ![alt text](img/___3.jpg)
+  ![alt text](img/__3__.jpg)
 
 - ```script/ssh-manager``` \
 ![alt text](img/__4__.jpg)
 
 - ```script/code_server-manager``` \
-  ![alt text](img/___5.jpg)
+  ![alt text](img/__5__.jpg)
 
 ## information
 ### push repo with token
