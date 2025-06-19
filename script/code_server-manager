@@ -1,5 +1,6 @@
 # Source utils
 source "$(dirname "$0")/../utils"
+stty -echo
 
 # File konfigurasi
 CONFIG_FILE="$HOME/.config/code-server/config.yaml"
@@ -124,6 +125,7 @@ menu() {
         echo -e "${CYAN}5.${RESET} Ubah Password"
         echo -e "${CYAN}q.${RESET} Keluar"
         divider
+        stty echo
         read -e -p "$(echo -e "${YELLOW}[?] Pilih opsi: ${RESET}")" opsi
 
         case "$opsi" in

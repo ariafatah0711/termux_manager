@@ -1,5 +1,6 @@
 # Source utils
 source "$(dirname "$0")/../utils"
+stty -echo
 
 # Trap untuk Ctrl+C
 cleanup() {
@@ -97,6 +98,7 @@ menu() {
         echo -e "${CYAN}5.${RESET} Ubah Password Login"
         echo -e "${CYAN}q.${RESET} Keluar"
         divider
+        stty echo
         read -e -p "$(echo -e "${YELLOW}[?] Pilih opsi: ${RESET}")" opsi
 
         case "$opsi" in

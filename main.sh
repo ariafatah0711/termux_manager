@@ -77,7 +77,6 @@ show_menu() {
     
     echo -e "${BLUE}║ $quit_text$(printf ' %.0s' $(seq 1 $quit_padding))║${NC}"
     echo -e "${BLUE}╚$(printf '═%.0s' $(seq 1 $menu_width))╝${NC}"
-    echo -n "Select an option: "
 }
 
 # Function to handle menu selection
@@ -117,7 +116,14 @@ check_requirements
 
 # Main loop
 while true; do
+    stty -echo
     show_menu
-    read -e choice
+    sleep 0.05
+    # Flush input buffer
+    if [ -t 0 ]; then
+        while IFS= read -r -t 0.01 -n 10000; do : ; done
+    fi
+    stty echo
+    read -e -p "Select an option: " choice
     handle_menu_choice "$choice"
 done 

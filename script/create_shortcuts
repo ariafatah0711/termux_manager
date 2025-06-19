@@ -2,6 +2,7 @@
 
 # Source utils
 source "$(dirname "$0")/../utils"
+stty -echo
 
 # Trap untuk Ctrl+C
 cleanup() {
@@ -85,5 +86,6 @@ fi
 create_shortcuts
 
 # Tunggu user tekan Enter
+stty echo
 info "Tekan Enter untuk keluar..."
 read 
