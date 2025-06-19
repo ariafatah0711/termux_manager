@@ -42,11 +42,21 @@ show_menu() {
     # Get menu title from config and add extra space
     local title=" $(jq -r '.menu_title' config.json) "
     local menu_width=40
+    local ip=$(get_ip)
+    local ip_display="IP: ${ip:-Not Connected}"
     
     echo -e "${BLUE}╔$(printf '═%.0s' $(seq 1 $menu_width))╗${NC}"
     echo -e "${BLUE}║$(printf ' %.0s' $(seq 1 $((($menu_width-${#title})/2))))$title$(printf ' %.0s' $(seq 1 $((($menu_width-${#title})/2))))║${NC}"
     echo -e "${BLUE}╠$(printf '═%.0s' $(seq 1 $menu_width))╣${NC}"
     
+    # Display IP address
+    if [ -n "$ip" ]; then
+        echo -e "${BLUE}║ ${GREEN}$ip_display$(printf ' %.0s' $(seq 1 $(($menu_width-${#ip_display}-1))))${BLUE}║${NC}"
+    else
+        echo -e "${BLUE}║ ${RED}$ip_display$(printf ' %.0s' $(seq 1 $(($menu_width-${#ip_display}-1))))${BLUE}║${NC}"
+    fi
+    echo -e "${BLUE}╠$(printf '═%.0s' $(seq 1 $menu_width))╣${NC}"
+
     # Check services from config
     while IFS=$'\t' read -r name process; do
         check_service "$name" "$process"
