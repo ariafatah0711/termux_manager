@@ -76,14 +76,32 @@ fi
 
 # echo $MAIN_PATH
 
+# # Hapus symlink lama kalau ada, lalu buat baru
+# rm -f "$LINK_PATH"
+# ln -s "$MAIN_PATH" "$LINK_PATH"
+
+# # Tambahkan ke .zshrc jika belum ada
+# if ! grep -Fxq "bash \"$LINK_PATH\"" ~/.zshrc; then
+#     echo "bash \"$LINK_PATH\"" >> ~/.zshrc
+#     echo "✔️ .zshrc updated to run: $LINK_PATH"
+# else
+#     echo "ℹ️ setup-manager already in .zshrc"
+# fi
+
 # Hapus symlink lama kalau ada, lalu buat baru
 rm -f "$LINK_PATH"
 ln -s "$MAIN_PATH" "$LINK_PATH"
+echo "Symlink dibuat: $LINK_PATH -> $MAIN_PATH"
 
-# Tambahkan ke .zshrc jika belum ada
-if ! grep -Fxq "bash \"$LINK_PATH\"" ~/.zshrc; then
-    echo "bash \"$LINK_PATH\"" >> ~/.zshrc
-    echo "✔️ .zshrc updated to run: $LINK_PATH"
+# Tanya user dulu sebelum menambahkan ke .zshrc
+read -p "➕ Tambahkan shortcut ke .zshrc? (y/n): " confirm
+if [[ "$confirm" =~ ^[Yy]$ ]]; then
+    if ! grep -Fxq "bash \"$LINK_PATH\"" ~/.zshrc; then
+        echo "bash \"$LINK_PATH\"" >> ~/.zshrc
+        echo "✔️ .zshrc updated to run: $LINK_PATH"
+    else
+        echo "ℹ️ Shortcut sudah ada di .zshrc"
+    fi
 else
-    echo "ℹ️ setup-manager already in .zshrc"
+    echo "❌ Tidak menambahkan ke .zshrc"
 fi
