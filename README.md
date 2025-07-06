@@ -67,19 +67,19 @@ Perintah yang tersedia:
 
 This list can be customized via `config.json`
 
-* `main.sh`
+* `main.sh` \
   ![main](img/__1__.jpg)
 
-* `script/ping`
+* `script/ping` \
   ![ping](img/__2__.jpg)
 
-* `script/speedtest`
+* `script/speedtest` \
   ![speedtest](img/__3__.jpg)
 
-* `script/ssh-manager`
+* `script/ssh-manager` \
   ![ssh-manager](img/__4__.jpg)
 
-* `script/code_server-manager`
+* `script/code_server-manager` \
   ![code-server](img/__5__.jpg)
 
 * `script/proot-manager`
