@@ -1,32 +1,63 @@
 # Termux Manager
 
-## Setup
+**Termux Manager** adalah tool berbasis shell yang berfungsi sebagai pusat kontrol untuk berbagai skrip dan fitur di Termux. Tool ini dirancang untuk mempermudah pengelolaan layanan, skrip, dan manajemen sistem dalam satu antarmuka interaktif.
+
+---
+
+## Struktur Direktori
+
+```
+termux_manager/
+├── main.sh             # Skrip utama, antarmuka menu
+├── setup.sh            # Instalasi awal dan konfigurasi environment
+├── uninstall.sh        # Menghapus instalasi dan shortcut
+├── config.json         # Konfigurasi menu dan daftar skrip
+├── utils/              # Fungsi bantu: banner, warna, validasi input
+├── req/                # Daftar paket dependensi tambahan
+├── img/                # Dokumentasi visual / screenshot
+└── script/             # Folder berisi skrip yang dijalankan via menu
+```
+
+---
+
+## Instalasi
 
 ```bash
 git clone https://github.com/ariafatah0711/termux_manager
+cd termux_manager
 chmod +x setup.sh
 ./setup.sh
 ```
 
-## Usage
+---
+
+## Penggunaan
+
+Setelah instalasi, Termux Manager dapat dijalankan dengan:
 
 ```bash
 termux-manager
 ```
 
-**or**
+Atau secara langsung melalui skrip utama:
 
 ```bash
 ./main.sh
 ```
 
+---
+
 ## Uninstall
+
+Untuk menghapus instalasi dan shortcut Termux Manager:
 
 ```bash
 ./uninstall.sh
 ```
 
-## Menu List
+---
+
+## Tampilan Menu Utama
 
 ```
 ╔════════════════════════════════════════╗
@@ -49,7 +80,9 @@ termux-manager
 Select an option:
 ```
 
-### Proot Distro Subcommands
+---
+
+## Subcommands Proot Distro Manager
 
 ```
 Perintah yang tersedia:
@@ -63,24 +96,24 @@ Perintah yang tersedia:
   exit          ➜ Keluar
 ```
 
-## List of Scripts
+---
 
-This list can be customized via `config.json`
+## Daftar Skrip (dapat dikustomisasi melalui `config.json`)
 
 * `main.sh` \
-  ![main](img/__1__.jpg)
+  ![](img/__1__.jpg)
 
 * `script/ping` \
-  ![ping](img/__2__.jpg)
+  ![](img/__2__.jpg)
 
 * `script/speedtest` \
-  ![speedtest](img/__3__.jpg)
+  ![](img/__3__.jpg)
 
 * `script/ssh-manager` \
-  ![ssh-manager](img/__4__.jpg)
+  ![](img/__4__.jpg)
 
 * `script/code_server-manager` \
-  ![code-server](img/__5__.jpg)
+  ![](img/__5__.jpg)
 
 * `script/proot-manager`
 
@@ -88,13 +121,17 @@ This list can be customized via `config.json`
 
 * `script/create_shortcuts`
 
-## GitHub Push with Token
+---
 
-1. Generate token: [GitHub Token Settings](https://github.com/settings/personal-access-tokens/new)
-2. Add repo access and set permission to **repo > contents**
+## GitHub Push dengan Token
 
-Example command:
+1. Buat token dari: [GitHub Token Settings](https://github.com/settings/personal-access-tokens/new)
+2. Aktifkan akses ke repository dengan izin **repo > contents**
+
+Contoh perintah push:
 
 ```bash
 git remote add origin https://<token>@github.com/username/myrepo.git
 ```
+
+---
