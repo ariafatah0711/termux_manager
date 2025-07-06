@@ -1,0 +1,68 @@
+#!/data/data/com.termux/files/usr/bin/bash
+source "$(dirname "$0")/../utils"
+stty -echo
+
+# Trap untuk Ctrl+C
+cleanup() {
+    exit 1
+}
+trap cleanup INT
+
+# Pastikan proot-distro terinstall
+command -v proot-distro >/dev/null 2>&1 || {
+    warning "Menginstal proot-distro..."
+    pkg update -y && pkg install proot-distro -y
+}
+
+# Path rootfs Debian
+DEBIAN_ROOTFS="$PREFIX/var/lib/proot-distro/installed-rootfs/debian"
+
+# Install Debian jika belum ada
+if [ ! -d "$DEBIAN_ROOTFS" ]; then
+    info "Menginstal Debian (proot-distro)..."
+    proot-distro install debian || { error "Gagal install Debian"; exit 1; }
+    success "Debian berhasil diinstal."
+else
+    success "Debian sudah terinstal."
+fi
+
+# Cek apakah n8n sudah tersedia di dalam Debian
+info "Mengecek apakah n8n sudah terinstal di Debian..."
+proot-distro login debian -- bash -c "command -v n8n >/dev/null" && {
+    success "n8n sudah terinstal. Menjalankan..."
+    proot-distro login debian -- bash -c "export N8N_SECURE_COOKIE=false && n8n"
+    exit
+}
+
+# Jika belum terinstal, jalankan setup
+info "n8n belum ditemukan. Menjalankan proses instalasi dalam Debian..."
+
+DEBIAN_SCRIPT="/root/install-n8n-inside.sh"
+
+proot-distro login debian -- bash -c "
+cat > $DEBIAN_SCRIPT << 'EOF'
+#!/bin/bash
+
+echo '[+] Update Debian...'
+apt update && apt upgrade -y
+
+echo '[+] Install curl, gnupg...'
+apt install -y curl gnupg
+
+if ! node -v | grep -q '^v20'; then
+  echo '[+] Install Node.js 20.x...'
+  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  apt install -y nodejs
+fi
+
+echo '[+] Install n8n...'
+npm install -g n8n
+
+echo '[✓] n8n berhasil diinstal. Menjalankan...'
+export N8N_SECURE_COOKIE=false
+n8n
+EOF
+
+chmod +x $DEBIAN_SCRIPT
+bash $DEBIAN_SCRIPT
+"

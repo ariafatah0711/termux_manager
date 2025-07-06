@@ -1,0 +1,126 @@
+#!/data/data/com.termux/files/usr/bin/bash
+clear
+source "$(dirname "$0")/../utils"
+trap "stty echo; echo; exit" INT TERM EXIT # Pulihkan echo jika script dihentikan
+
+# Trap untuk Ctrl+C
+cleanup() {
+    exit 1
+}
+trap cleanup INT
+
+CONFIG_DIR="$PREFIX/var/lib/proot-distro/installed-rootfs"
+
+# Pastikan proot-distro terinstal
+command -v proot-distro >/dev/null 2>&1 || {
+    warning "Menginstal proot-distro..."
+    pkg update -y && pkg install proot-distro -y
+}
+
+# ===== Fungsi =====
+list_installed() {
+    for dir in "$CONFIG_DIR"/*; do
+        [[ -d "$dir" ]] && echo "$(basename "$dir")"
+    done
+}
+
+list_available() {
+    proot-distro list | awk '{print $1}' | grep -v '^$'
+}
+
+print_help() {
+    echo -e "${CYAN}Perintah yang tersedia:${RESET}"
+    echo -e "  ${GREEN}l${RESET}             ➜ List distro yang diinstal"
+    echo -e "  ${GREEN}l -a${RESET}         ➜ List semua distro tersedia"
+    echo -e "  ${GREEN}i <nama>${RESET}     ➜ Install distro (langsung)"
+    echo -e "  ${GREEN}r <nama>${RESET}     ➜ Jalankan distro"
+    echo -e "  ${GREEN}d <nama>${RESET}     ➜ Hapus distro"
+    echo -e "  ${GREEN}clear${RESET}     ➜ Clear Terminal"
+    echo -e "  ${GREEN}help${RESET}         ➜ Tampilkan bantuan"
+    echo -e "  ${GREEN}exit${RESET}         ➜ Keluar"
+}
+
+install_distro() {
+    local distro="$1"
+
+    if [[ -z "$distro" ]]; then
+        warning "Gunakan: i <nama-distro>. Contoh: i debian"
+        info "Daftar alias distro yang tersedia:"
+        proot-distro list 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -Eo '< *[^ >]+ *>' | tr -d '<> ' | sort -u | sed 's/^/- /'
+
+        echo -n "Masukkan nama distro yang ingin diinstal: "
+        read -r distro
+        [[ -z "$distro" ]] && error "Distro tidak boleh kosong." && return
+    fi
+
+    # Ambil daftar alias distro
+    local available_aliases
+    available_aliases=$(proot-distro list 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -Eo '< *[^ >]+ *>' | tr -d '<> ' | sort -u)
+
+    if ! echo "$available_aliases" | grep -Fxq "$distro"; then
+        error "Distro '$distro' tidak ditemukan."
+        return
+    fi
+
+    info "Menginstal distro '$distro'..."
+    proot-distro install "$distro" && success "Distro '$distro' berhasil diinstal." || error "Gagal install '$distro'."
+}
+
+run_distro() {
+    local name="$1"
+
+    if [[ -z "$name" ]]; then
+        info "Daftar distro yang sudah terinstal:"
+        local installed
+        installed=$(list_installed)
+
+        if [[ -z "$installed" ]]; then
+            warning "Belum ada distro yang terinstal."
+            return
+        fi
+
+        echo "$installed" | sed 's/^/ - /'
+        echo -n "Masukkan nama distro untuk dijalankan: "
+        read -r name
+        [[ -z "$name" ]] && error "Nama distro tidak boleh kosong." && return
+    fi
+
+    # Validasi apakah distro tersedia di direktori
+    if [[ ! -d "$CONFIG_DIR/$name" ]]; then
+        error "Distro '$name' belum terinstal."
+        return
+    fi
+
+    proot-distro login "$name"
+}
+
+delete_distro() {
+    local name="$1"
+    [[ -z "$name" ]] && error "Harus menyertakan nama distro." && return
+    proot-distro remove "$name" && success "Distro '$name' dihapus." || error "Gagal hapus '$name'."
+}
+
+# ===== REPL Loop =====
+while true; do
+    echo -en "${CYAN}proot_distro > ${RESET}"
+    read -r input
+    cmd=($input)
+    case "${cmd[0]}" in
+        l)
+            if [[ "${cmd[1]}" == "-a" ]]; then
+                info "Daftar semua distro tersedia:"
+                list_available
+            else
+                info "Distro terinstal:"
+                list_installed
+            fi
+            ;;
+        i) install_distro "${cmd[1]}" ;;
+        d) delete_distro "${cmd[1]}" ;;
+        r) run_distro "${cmd[1]}" ;;
+        clear) clear ;;
+        help) print_help ;;
+        exit|quit|q) echo "Keluar..."; exit ;;
+        *) error "Perintah tidak dikenal. Ketik 'help' untuk bantuan." ;;
+    esac
+done

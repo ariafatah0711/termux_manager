@@ -18,6 +18,14 @@
             "path": "script/code_server-manager"
         },
         {
+            "name": "proot_distro-manager",
+            "path": "script/proot-manager"
+        },
+        {
+            "name": "n8n_start",
+            "path": "script/n8n_start"
+        },
+        {
             "name": "create_shortcuts",
             "path": "script/create_shortcuts"
         }
