@@ -38,6 +38,10 @@
         {
             "name": "Code Server",
             "process": "code-server"
+        },
+                {
+            "name": "N8N (Proot Distro Debian)",
+            "process": "n8n"
         }
     ]
 }

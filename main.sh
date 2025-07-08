@@ -31,6 +31,8 @@ check_service() {
     
     if pgrep -f "$process_name" > /dev/null; then
         echo -e "${BLUE}║${GREEN} ✓ $service_name$(printf ' %.0s' $(seq 1 $(($menu_width-${#service_name}-5))))${BLUE}  ║${NC}"
+    elif ps aux | grep -v grep | grep -q "$process_name"; then
+        echo -e "${BLUE}║${GREEN} ✓ $service_name$(printf ' %.0s' $(seq 1 $(($menu_width-${#service_name}-5))))${BLUE}  ║${NC}"
     else
         echo -e "${BLUE}║${RED} ✗ $service_name$(printf ' %.0s' $(seq 1 $(($menu_width-${#service_name}-5))))${BLUE}  ║${NC}"
     fi
