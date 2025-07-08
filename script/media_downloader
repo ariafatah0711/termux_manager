@@ -1,0 +1,69 @@
+#!/bin/bash
+set -e
+
+# Source utils
+source "$(dirname "$0")/../utils"
+stty -echo
+
+# Trap untuk Ctrl+C
+cleanup() {
+    exit 1
+}
+trap cleanup INT
+
+# Pastikan yt-dlp dan ffmpeg tersedia
+if ! command -v yt-dlp >/dev/null 2>&1; then
+    warning "yt-dlp belum terinstal. Menginstal..."
+    pkg update -y
+    pkg install python ffmpeg -y
+    pip install -U yt-dlp
+
+    # pkg update -y >/dev/null 2>&1
+    # pkg install python ffmpeg -y >/dev/null 2>&1
+    # pip install -U yt-dlp >/dev/null 2>&1
+    success "yt-dlp berhasil diinstal."
+fi
+
+# Coba buat folder di storage luar
+STORAGE_DOWNLOAD="$HOME/storage/downloads/termux_download"
+INTERNAL_DOWNLOAD="$HOME/download"
+
+if mkdir -p "$STORAGE_DOWNLOAD" 2>/dev/null; then
+    DOWNLOAD_DIR="$STORAGE_DOWNLOAD"
+else
+    warning "Gagal akses folder storage. Gunakan fallback ke: $INTERNAL_DOWNLOAD"
+    DOWNLOAD_DIR="$INTERNAL_DOWNLOAD"
+    mkdir -p "$DOWNLOAD_DIR"
+fi
+
+clear
+banner "🎧 UNIVERSAL MEDIA DOWNLOADER"
+divider
+
+stty echo
+read -p "$(info 'Masukkan URL (YouTube, SoundCloud, Spotify, dll): ') " URL
+
+echo
+info "Pilih format:"
+echo -e "${CYAN}[1]${RESET} Audio Only (MP3)"
+echo -e "${CYAN}[2]${RESET} Video (MP4)"
+read -p "$(info 'Pilih [1/2]: ') " FORMAT
+
+cd "$DOWNLOAD_DIR"
+
+info "Mengunduh konten..."
+if [[ "$FORMAT" == "1" ]]; then
+    yt-dlp --extract-audio --audio-format mp3 "$URL"
+elif [[ "$FORMAT" == "2" ]]; then
+    yt-dlp -f bestvideo+bestaudio --merge-output-format mp4 "$URL"
+else
+    error "Format tidak valid."
+    stty echo
+    exit 1
+fi
+
+divider
+success "Download selesai! File disimpan di: $DOWNLOAD_DIR"
+info "Tekan Enter untuk keluar..."
+read
+stty echo

@@ -46,17 +46,42 @@ show_menu() {
     local menu_width=40
     local ip=$(get_ip)
     local ip_display="IP: ${ip:-Not Connected}"
-    
+
+    # Info tambahan
+    local uptime=$(uptime -p)
+    local user=$(whoami)
+    local tty=$(tty)
+    local ram=$(free -h | awk '/Mem:/ {print $3 "/" $2}')
+    local disk=$(df -h $HOME | awk 'NR==2 {print $3 "/" $2}')
+    local shell_count=$(ps aux | grep -E 'zsh|bash' | grep -v grep | wc -l)
+
     echo -e "${BLUE}╔$(printf '═%.0s' $(seq 1 $menu_width))╗${NC}"
-    echo -e "${BLUE}║$(printf ' %.0s' $(seq 1 $((($menu_width-${#title})/2))))$title$(printf ' %.0s' $(seq 1 $((($menu_width-${#title})/2))))║${NC}"
-    echo -e "${BLUE}╠$(printf '═%.0s' $(seq 1 $menu_width))╣${NC}"
+
+    local tpad=$(( (menu_width - ${#title}) / 2 ))
+    echo -e "${BLUE}║$(printf ' %.0s' $(seq 1 $tpad))$title$(printf ' %.0s' $(seq 1 $((menu_width - ${#title} - tpad))))║${NC}"
     
-    # Display IP address
-    if [ -n "$ip" ]; then
-        echo -e "${BLUE}║ ${GREEN}$ip_display$(printf ' %.0s' $(seq 1 $(($menu_width-${#ip_display}-1))))${BLUE}║${NC}"
-    else
-        echo -e "${BLUE}║ ${RED}$ip_display$(printf ' %.0s' $(seq 1 $(($menu_width-${#ip_display}-1))))${BLUE}║${NC}"
-    fi
+    echo -e "${BLUE}╠$(printf '═%.0s' $(seq 1 $menu_width))╣${NC}"
+
+    # IP
+    local raw_ip_len=${#ip_display}
+    if [ -n "$ip" ]; then echo -e "${BLUE}║ ${GREEN}$ip_display${NC}$(printf ' %.0s' $(seq 1 $((menu_width - raw_ip_len - 1))))${BLUE}║${NC}"
+    else echo -e "${BLUE}║ ${RED}$ip_display${NC}$(printf ' %.0s' $(seq 1 $((menu_width - raw_ip_len - 1))))${BLUE}║${NC}"; fi
+
+    # 2 kolom rapi dengan fixed width
+    local user_disp="User: $user"
+    local tty_disp="TTY: $tty"
+    local ram_disp="RAM: $ram"
+    local disk_disp="Disk: $disk"
+    # Format dengan printf biar rata: kolom 1 = 20 char, kolom 1 = sisa
+    line1=$(printf "%-20s %s" "$user_disp" "$tty_disp")
+    line2=$(printf "%-20s %s" "$ram_disp" "$disk_disp")
+    
+    echo -e "${BLUE}║ ${GREEN}$line1${NC}$(printf ' %.0s' $(seq 1 $((menu_width - ${#line1} - 1))))${BLUE}║${NC}"
+    echo -e "${BLUE}║ ${YELLOW}$line2${NC}$(printf ' %.0s' $(seq 1 $((menu_width - ${#line2} - 1))))${BLUE}║${NC}"
+    # Aktif shell
+    # local cdisp="TTY Active: $shell_count"
+    # echo -e "${BLUE}║ ${CYAN}$cdisp${NC}$(printf ' %.0s' $(seq 1 $((menu_width - ${#cdisp} - 1))))${BLUE}║${NC}"
+
     echo -e "${BLUE}╠$(printf '═%.0s' $(seq 1 $menu_width))╣${NC}"
 
     # Check services from config

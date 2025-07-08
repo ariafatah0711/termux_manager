@@ -26,21 +26,25 @@
             "path": "script/n8n_start"
         },
         {
+            "name": "media_downloader",
+            "path": "script/media_downloader"
+        },
+        {
             "name": "create_shortcuts",
             "path": "script/create_shortcuts"
         }
     ],
     "services": [
         {
-            "name": "SSH Server",
+            "name": "SSH Server (8022)",
             "process": "sshd"
         },
         {
-            "name": "Code Server",
+            "name": "Code Server (8080)",
             "process": "code-server"
         },
                 {
-            "name": "N8N (Proot Distro Debian)",
+            "name": "N8N - Proot Distro Debian (5678)",
             "process": "n8n"
         }
     ]

@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/bin/bash
 clear
 source "$(dirname "$0")/../utils"
 trap "stty echo; echo; exit" INT TERM EXIT # Pulihkan echo jika script dihentikan
